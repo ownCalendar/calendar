@@ -998,7 +998,8 @@ button.delete:focus {
 	width: 40%;
 }
 
-#app-settings .settings-fieldset .settings-upload {
+#app-settings .settings-fieldset .settings-upload,
+#app-settings .settings-fieldset .settings-download  {
 	position: absolute;
 	top: 12.5px;
 	width: 100%;
@@ -1023,12 +1024,14 @@ button.delete:focus {
 	background: transparent;
 }
 
-#app-settings .settings-fieldset .settings-fieldset-interior-upload {
+#app-settings .settings-fieldset .settings-fieldset-interior-upload,
+#app-settings .settings-fieldset .settings-fieldset-interior-export {
 	width: 95%;
 	height: 55px;
 }
 
-#app-settings .settings-fieldset .settings-fieldset-interior-upload input {
+#app-settings .settings-fieldset .settings-fieldset-interior-upload input,
+#app-settings .settings-fieldset .settings-fieldset-interior-export input {
 	position: absolute;
 	top: 18px;
 }

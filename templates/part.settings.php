@@ -52,6 +52,9 @@
 				<span href="#" class="settings-upload svg icon-upload" role="button" id="import-button-overlay"><?php p($l->t('Import calendar')); ?></span>
 				<span ng-show="!files.length" class="hide"><?php p($l->t('No Calendars selected for import')); ?></span>
 			</li>
+      <li class="settings-fieldset-interior-item settings-fieldset-interior-export">
+				<span href="#" class="settings-download svg icon-download" role="button" id="export-button-overlay" ng-click="exportCalendar()"><?php p($l->t('Export calendar')); ?></span>
+      </li>
 
 			<li class="settings-fieldset-interior-item">
 				<label class="settings-input"><?php p($l->t('Primary CalDAV address')); ?></label>
