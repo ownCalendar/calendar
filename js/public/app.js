@@ -1311,16 +1311,28 @@ app.controller('SettingsController', ['$scope', '$uibModal', '$timeout', 'Settin
 	};
 
 	$scope.exportCalendar = function() {
-		var element = document.createElement('a');
-		var head =
-		'<head><link rel="stylesheet" type="text/css" href="http://vacillate.cs.umd.edu/lion_king/apps/calendar/css/public/rendering.css"><link rel="stylesheet" type="text/css" href="http://vacillate.cs.umd.edu/lion_king/apps/calendar/js/vendor/fullcalendar/dist/fullcalendar.css"><link rel="stylesheet" type="text/css" href="http://vacillate.cs.umd.edu/lion_king/core/css/styles.css"></head>';
-		var body = '<body>' + document.getElementById("app-content").innerHTML + '</body>';
+		var pathArray = window.location.pathname.split('/');
+		var baseURL = window.location.protocol + "//" + window.location.host + "/" +
+			pathArray[1] + "/";
+
+		var head = '<head><link rel="stylesheet" type="text/css" href="' + baseURL +
+			'apps/calendar/css/public/rendering.css">' +
+			'<link rel="stylesheet" type="text/css" href="' +
+			baseURL + 'apps/calendar/js/vendor/fullcalendar/dist/fullcalendar.css">' +
+			'<link rel="stylesheet" type="text/css" href="' + baseURL +
+			'core/css/styles.css"></head>';
+		var body = '<body>' + document.getElementById("app-content").innerHTML +
+			'</body>';
 		var html = head + body;
+
 		var date = new Date();
 		var dateString = date.getDate() + '_' + date.getDay() + '_' + date.getFullYear()
 			+ '_' + date.getHours() + '_' + date.getMinutes() + '_' + date.getSeconds();
 		var filename = 'calendar_rendering_' + dateString;
- 		element.setAttribute('href', 'data:text/html;charset=utf-8,' + encodeURIComponent(html));
+
+		var element = document.createElement('a');
+		element.setAttribute('href', 'data:text/html;charset=utf-8,' +
+			encodeURIComponent(html));
  		element.setAttribute('download', filename);
 
  		element.style.display = 'none';
