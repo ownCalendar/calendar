@@ -59,3 +59,26 @@
 	line-height: initial;
 	padding-left: 3px;
 }
+
+/* Remove highlight for today's date */
+.fc td.fc-today {
+	background-color: #ffffff !important;
+	border-top-color: #eee !important;
+}
+
+/* Format rendering header */
+.fc-top {
+	font-size: 15px;
+        height: 23px;
+	text-align: center;
+}
+
+/* Remove "clickable" cursor */
+.fc-content,
+.fc-event,
+.fc-event-container,
+.fc-title {
+	cursor: default !important;
+}
+
+	
