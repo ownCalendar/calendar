@@ -499,6 +499,50 @@ app.controller('CalendarListController', ['$scope', '$rootScope', '$window', 'Ca
 		});
 	};
 
+	$scope.sendOneTimeLink = function(item) {
+		var pathArray = window.location.pathname.split('/');
+		var baseURL = window.location.protocol + "//" + window.location.host + "/" +
+			pathArray[1] + "/";
+
+		var head = '<head><link rel="stylesheet" type="text/css" href="' + baseURL +
+			'apps/calendar/css/public/rendering.css">' +
+			'<link rel="stylesheet" type="text/css" href="' +
+			baseURL + 'apps/calendar/js/vendor/fullcalendar/dist/fullcalendar.css">' +
+			'<link rel="stylesheet" type="text/css" href="' + baseURL +
+			'core/css/styles.css"></head>';
+
+		var appContentNode = document.getElementById("app-content").cloneNode(true);
+		var eventNodes = appContentNode.querySelectorAll('.fc-day-grid-event');
+
+		// removing events that are not a part of the calendar
+		eventNodes.forEach(function(eventNode) {
+			if(!eventNode.classList.contains('fcCalendar-id-' + item.calendar.tmpId)) {
+				eventNode.parentNode.removeChild(eventNode);
+			}
+		});
+
+		var body = '<body>' + appContentNode.innerHTML +
+			'</body>';
+		var html = head + body;
+
+		var date = new Date();
+		var dateString = date.getDate() + '_' + date.getDay() + '_' + date.getFullYear()
+			+ '_' + date.getHours() + '_' + date.getMinutes() + '_' + date.getSeconds();
+		var filename = 'calendar_rendering_' + dateString;
+
+		var element = document.createElement('a');
+		element.setAttribute('href', 'data:text/html;charset=utf-8,' +
+			encodeURIComponent(html));
+ 		element.setAttribute('download', filename);
+
+ 		element.style.display = 'none';
+ 		document.body.appendChild(element);
+
+ 		element.click();
+
+ 		document.body.removeChild(element);
+	};
+
 	$scope.download = function (item) {
 		$window.open(item.calendar.downloadUrl);
 	};
