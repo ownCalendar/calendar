@@ -1321,7 +1321,8 @@ app.controller('SettingsController', ['$scope', '$uibModal', '$timeout', 'Settin
 			baseURL + 'apps/calendar/js/vendor/fullcalendar/dist/fullcalendar.css">' +
 			'<link rel="stylesheet" type="text/css" href="' + baseURL +
 			'core/css/styles.css"></head>';
-		var body = '<body>' + document.getElementById("app-content").innerHTML +
+		var button = document.getElementsByClassName("btn-date");
+		var body = '<body><h1 class="fc-top">' + button[0].innerHTML + '</h1>' + document.getElementById("app-content").innerHTML +
 			'</body>';
 		var html = head + body;
 
