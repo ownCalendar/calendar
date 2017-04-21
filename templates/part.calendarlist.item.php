@@ -95,12 +95,6 @@
 			</button>
 		</li>
 		<li>
-			<button	ng-click="">
-				<span class="icon-mail svg"></span>
-				<span><?php p($l->t('Send')); ?></span>
-			</button>
-		</li>
-		<li>
 			<button	ng-click="download(item)">
 				<span class="icon-download svg"></span>
 				<span><?php p($l->t('Download')); ?></span>
