@@ -1430,6 +1430,126 @@ app.controller('SettingsController', ['$scope', '$uibModal', '$timeout', 'Settin
 */
 app.controller('SubscriptionController', ['$scope', function ($scope) {}]);
 
+/**
+* Controller: TimeAccounting
+* Description: Keeps track of the amount of time spent on events or layers.
+*/
+app.controller('TimeAccountingController', ['$scope', 'VEvent', 'VEventService', 'CalendarService', 'TimezoneService', 'CalendarListItem', 'Calendar', 'SimpleEvent', 'ICalFactory', 'FcEvent', function ($scope, VEvent, VEventService, CalendarService, TimezoneService, CalendarListItem, Calendar, SimpleEvent, ICalFactory, FcEvent) {
+	// start,end -> start and end times to calculate (default = 1 week)
+	$scope.start = moment(new Date());
+	$scope.end = moment(moment(new Date()).add(7, 'days'));
+	$scope.defaulttimezone = TimezoneService.current();
+	// time -> variable for total time thats updated in the webpage
+	$scope.time = 'Specify a time range to account for time';
+	// calHours calMinutes -> dictionaries where the key is the display name of the calendar and the value is the total hours/minutes respectively for that layer
+	$scope.calHours = {};
+	$scope.calMinutes = {};
+	// events is the array of display names for each of the calendar objects
+	$scope.events = [];
+	// calEvents = dictionary where keys = displaynames , values = time totals
+	$scope.calEvents = {};
+	// color dictionary, key = displayname , value = color
+	$scope.colorDict = {};
+	// allDayEvents = total number of all day events in the given time period
+	$scope.allDayEvents = 0;
+
+	// nv = new value , ov = old value
+	// updates the end date when the start date is changed to keep the difference in dates equal
+	$scope.$watch('start', function(nv, ov) {
+		var diff = nv.diff(ov, 'seconds');
+		if (diff != 0) {
+			$scope.end = moment($scope.end.add(diff, 'seconds'));
+		}
+	});
+
+	// roundDown -> given hours and minutes, returns string with minutes >= 60 rounded down and as a string
+	// ex: roundDown(hours=4, minutes=65) => '5 hours 5 minutes'
+	// ex: roundDown(hours=7, minutes=120) => '9 hours'
+	$scope.roundDown = function(hours,minutes){
+		if(minutes >= 60){
+			hours += Math.floor(minutes/60);
+			minutes = minutes % 60;
+		}
+		if(minutes == 0){
+			return hours + (hours == 1 ? ' hour' : ' hours');
+		}
+		else{
+			return hours + (hours == 1 ? ' hour ' : ' hours ') + minutes + (minutes == 1 ? ' minute' : ' minutes');
+		}
+	}
+
+	// updates the color dictionary, executed when 'Calculate' is pressed
+	$scope.getColor = function(){
+		CalendarService.getAll().then(function (calendars){ calendars.forEach(function(layer){
+			$scope.colorDict[layer.displayname] = layer.color;
+		});});
+	}
+
+	// called when 'Calculate' button is pressed
+	$scope.accountTime = function() {
+		var totalHours = 0;
+		var totalMinutes = 0;
+		$scope.calHours = {};
+		$scope.calMinutes = {};
+		$scope.calAllDay = {};
+		$scope.time = 0;
+		$scope.events = [];
+		$scope.calEvents = [];
+		$scope.allDayEvents = 0;
+		// iterate through all calendars
+		CalendarService.getAll().then(function (calendars) {
+			calendars.forEach(function(cal) {
+				if(cal.enabled) {
+					var calName = cal.displayname;
+					$scope.events.push(calName);
+					if($scope.calHours[calName] == undefined){
+						$scope.calHours[calName] = 0;
+						$scope.calMinutes[calName] = 0;
+						$scope.calAllDay[calName] = 0;
+					}
+					// iterate through all events
+					VEventService.getAll(cal, $scope.start, $scope.end).then(function (events) {
+						events.forEach(function(event) {
+							var fcEvents = event.getFcEvent(moment($scope.start.clone().subtract(1,'day')), moment($scope.end.clone().add(1,'day')), $scope.defaulttimezone);
+							fcEvents.forEach(function(evnt){
+								// count all time of the events and the all day events
+								if(evnt.allDay){
+									//count all day events
+									$scope.allDayEvents++;
+									$scope.calAllDay[calName]++;
+								}
+								else{
+									var tStart = moment(evnt.start);
+									var tEnd = moment(evnt.end);
+									if(!tEnd.isBefore($scope.start) && !tStart.isAfter($scope.end)){
+										if(tStart.isBefore($scope.start)){
+											tStart = $scope.start;
+										}
+										if(tEnd.isAfter($scope.end)){
+											tEnd = $scope.end;
+										}
+										// determine duration of hours and minutes spent on event
+										var duration = moment.duration(tEnd.diff(tStart));
+
+										$scope.calHours[calName] = $scope.calHours[calName] + duration.hours();
+										$scope.calMinutes[calName] = $scope.calMinutes[calName] + duration.minutes();
+										totalHours = totalHours + duration.hours();
+										totalMinutes = totalMinutes + duration.minutes();
+									}
+								}
+							});
+							$scope.$apply(function() {
+								$scope.time = $scope.roundDown(totalHours,totalMinutes);
+								$scope.calEvents[calName] = $scope.roundDown($scope.calHours[calName],$scope.calMinutes[calName]);
+							});
+						});
+					});
+				}
+			});
+		});
+	}
+}]);
+
 app.controller('VAlarmController', ["$scope", function ($scope) {
 	'use strict';
 
@@ -1481,6 +1601,7 @@ app.controller('VAlarmController', ["$scope", function ($scope) {
 				editing: false
 			}
 		});
+
 
 		alarm.editor.reminderSelectValue = $scope.reminderSelectTriggers.indexOf(alarm.trigger.value) !== -1 ? alarm.editor.reminderSelectValue = alarm.trigger.value : alarm.editor.reminderSelectValue = 'custom';
 
