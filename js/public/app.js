@@ -516,7 +516,7 @@ app.controller('CalendarListController', ['$scope', '$rootScope', '$window', 'Ca
 				eventNode.parentNode.removeChild(eventNode);
 			} else {
 				// remove appointments from calendar
-				var titleNode = appContentNode.querySelector('.fc-title');
+				var titleNode = eventNode.querySelector('.fc-title');
 				var title = titleNode.textContent;
 				if (title.includes("Appointment with")) {
 					eventNode.parentNode.removeChild(eventNode);
