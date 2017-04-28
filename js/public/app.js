@@ -565,7 +565,7 @@ app.controller('CalendarListController', ['$scope', '$rootScope', '$window', 'Ca
 		httpRequest.send(data);
 
 		item.showOneTimeUrl();
-		scope.onetimelink = 'http://vacillate.cs.umd.edu/little_mermaid/index.php/apps/calendar/view/'
+		scope.onetimelink = window.location.href + 'view/'
 			+ token;
   };
 
