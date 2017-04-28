@@ -78,6 +78,9 @@ foreach ($scripts as $script) {
 				<div ng-controller="SubscriptionController">
 					<?php print_unescaped($this->inc('part.createsubscription')); ?>
 				</div>
+				<div ng-controller="TimeAccountingController">
+					<?php print_unescaped($this->inc('part.timeaccounting')); ?>
+				</div>
 				<?php print_unescaped($this->inc('part.subscriptionlist')); ?>
 			</div>
 
