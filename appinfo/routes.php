@@ -40,5 +40,9 @@ return [
 		['name' => 'contact#searchLocation', 'url' => '/v1/autocompletion/location', 'verb' => 'GET'],
 
 		['name' => 'proxy#proxy', 'url' => '/v1/proxy', 'verb' => 'GET'],
+		//One-time-link view
+		['name' => 'oneTimeLink#index', 'url' => '/view/{token}', 'verb' => 'GET'],
+		['name' => 'oneTimeLink#generateTemplate', 'url' => '/generateTemplate', 'verb' => 'POST'],
+		['name' => 'oneTimeLink#reserveAppointment', 'url' => '/reserveAppointment', 'verb' => 'POST']
 	]
 ];

@@ -67,6 +67,13 @@ class Application extends App {
 
 			return new Controller\ProxyController($c->getAppName(), $request, $client, $l10n, $logger);
 		});
+		$container->registerService('OneTimeLinkController', function(IAppContainer $c) {
+			$request = $c->query('Request');
+			$config = $c->getServer()->getConfig();
+			$db = $c->query('ServerContainer')->getDb();
+
+			return new Controller\OneTimeLinkController($c->getAppName(), $request, $db, $config);
+		});
 	}
 
 	/**

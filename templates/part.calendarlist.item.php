@@ -95,9 +95,10 @@
 			</button>
 		</li>
 		<li>
-			<button	ng-click="sendOneTimeLink(item)">
-				<span class="icon-mail svg"></span>
-				<span><?php p($l->t('Send')); ?></span>
+			<!-- <button	ng-click="item.showOneTimeUrl()"> -->
+			<button ng-click="sendOneTimeLink(item)">
+				<span class="icon-link svg"></span>
+				<span><?php p($l->t('One-Time Link')); ?></span>
 			</button>
 		</li>
 		<li>
@@ -151,6 +152,16 @@
 		   type="text"/>
 	<button class="btn icon-close button-next-to-input"
 			ng-click="item.hideWebCalUrl()">
+	</button>
+</fieldset>
+<fieldset class="editfieldset"
+		ng-show="item.displayOneTimeUrl()">
+	<input class="input-with-button-on-right-side"
+		ng-value=onetimelink
+		readonly
+		type="text"/>
+	<button class="btn icon-close button-next-to-input"
+			ng-click="item.hideOneTimeUrl()">
 	</button>
 </fieldset>
 

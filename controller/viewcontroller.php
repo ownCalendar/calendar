@@ -136,7 +136,7 @@ class ViewController extends Controller {
 		if ($defaultView === null) {
 			$defaultView = 'month';
 		}
-		
+
 		$webCalWorkaround = $runningOnNextcloud10OrLater ? 'no' : 'yes';
 
 		return new TemplateResponse('calendar', 'main', [

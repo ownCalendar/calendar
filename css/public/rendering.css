@@ -78,7 +78,5 @@
 .fc-event,
 .fc-event-container,
 .fc-title {
-	cursor: default !important;
+	cursor: default;
 }
-
-	

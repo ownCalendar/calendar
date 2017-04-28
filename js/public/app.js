@@ -6,6 +6,11 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 /**
+* A hash table that will let us do up to 1 million one-time-links
+*/
+var oneTimeLinkHash = new Uint8Array(1000000);
+
+/**
 * Configuration / App Initialization File
 */
 
@@ -421,7 +426,8 @@ app.controller('CalController', ['$scope', 'Calendar', 'CalendarService', 'VEven
 * Description: Takes care of CalendarList in App Navigation.
 */
 
-app.controller('CalendarListController', ['$scope', '$rootScope', '$window', 'CalendarService', 'WebCalService', 'is', 'CalendarListItem', 'Calendar', 'MailerService', 'ColorUtility', function ($scope, $rootScope, $window, CalendarService, WebCalService, is, CalendarListItem, Calendar, MailerService, ColorUtility) {
+app.controller('CalendarListController', ['$scope', '$rootScope', '$window', 'CalendarService', 'WebCalService', 'is', 'CalendarListItem', 'Calendar', 'MailerService', 'ColorUtility',
+'RandomStringService', 'RandomLongStringService', function ($scope, $rootScope, $window, CalendarService, WebCalService, is, CalendarListItem, Calendar, MailerService, ColorUtility, RandomStringService, RandomLongStringService) {
 	'use strict';
 
 	$scope.calendarListItems = [];
@@ -434,6 +440,7 @@ app.controller('CalendarListController', ['$scope', '$rootScope', '$window', 'Ca
 	$scope.subscription.newSubscriptionLocked = false;
 	$scope.publicdav = 'CalDAV';
 	$scope.publicdavdesc = t('calendar', 'CalDAV address for clients');
+	$scope.onetimelink = '';
 
 	window.scope = $scope;
 
@@ -500,17 +507,6 @@ app.controller('CalendarListController', ['$scope', '$rootScope', '$window', 'Ca
 	};
 
 	$scope.sendOneTimeLink = function(item) {
-		var pathArray = window.location.pathname.split('/');
-		var baseURL = window.location.protocol + "//" + window.location.host + "/" +
-			pathArray[1] + "/";
-
-		var head = '<head><link rel="stylesheet" type="text/css" href="' + baseURL +
-			'apps/calendar/css/public/rendering.css">' +
-			'<link rel="stylesheet" type="text/css" href="' +
-			baseURL + 'apps/calendar/js/vendor/fullcalendar/dist/fullcalendar.css">' +
-			'<link rel="stylesheet" type="text/css" href="' + baseURL +
-			'core/css/styles.css"></head>';
-
 		var appContentNode = document.getElementById("app-content").cloneNode(true);
 		var eventNodes = appContentNode.querySelectorAll('.fc-day-grid-event');
 
@@ -518,30 +514,60 @@ app.controller('CalendarListController', ['$scope', '$rootScope', '$window', 'Ca
 		eventNodes.forEach(function(eventNode) {
 			if(!eventNode.classList.contains('fcCalendar-id-' + item.calendar.tmpId)) {
 				eventNode.parentNode.removeChild(eventNode);
+			} else {
+				// remove appointments from calendar
+				var titleNode = appContentNode.querySelector('.fc-title');
+				var title = titleNode.textContent;
+				if (title.includes("Appointment with")) {
+					eventNode.parentNode.removeChild(eventNode);
+				}
+
+				//Adding unique URL so the event can be updated
+				var attr = document.createAttribute('data-url');
+				attr.value = item.calendar.url;
+				eventNode.setAttributeNode(attr);
+
+				//Adding owner of the calendar
+				var attr = document.createAttribute('data-owner');
+				attr.value = item.calendar.owner;
+				eventNode.setAttributeNode(attr);
 			}
 		});
 
-		var body = '<body>' + appContentNode.innerHTML +
-			'</body>';
-		var html = head + body;
 
-		var date = new Date();
-		var dateString = date.getDate() + '_' + date.getDay() + '_' + date.getFullYear()
-			+ '_' + date.getHours() + '_' + date.getMinutes() + '_' + date.getSeconds();
-		var filename = 'calendar_rendering_' + dateString;
+		var button = document.getElementsByClassName("btn-date");
+		var html = '<h1 class="fc-top">' + button[0].innerHTML + '</h1>' + appContentNode.innerHTML;
+		var token = RandomLongStringService.generate();
+		var hash = 7;
+		var used = true;
+		while(used){
+			for( var i = 0; i < 40; i++)
+				hash = hash*13 + token.charAt(i);
+			hash = hash % 1000000;
+			if (oneTimeLinkHash[hash] == 0) {
+				oneTimeLinkHash[hash] = 1;
+				used = false;
+			}else {
+				token = RandomLongStringService.generate();
+				used = false;
+			}
+		}
+		var method = 'POST';
+		var url = 'generateTemplate';
+		var headers = {
+			'Content-Type': 'application/xml; charset=utf-8'
+		};
+		var data = JSON.stringify({"html":html, "token":token});
 
-		var element = document.createElement('a');
-		element.setAttribute('href', 'data:text/html;charset=utf-8,' +
-			encodeURIComponent(html));
- 		element.setAttribute('download', filename);
+		var httpRequest = new XMLHttpRequest();
+		httpRequest.open(method, url, true);
+		httpRequest.setRequestHeader("Content-type", "application/json");
+		httpRequest.send(data);
 
- 		element.style.display = 'none';
- 		document.body.appendChild(element);
-
- 		element.click();
-
- 		document.body.removeChild(element);
-	};
+		item.showOneTimeUrl();
+		scope.onetimelink = 'http://vacillate.cs.umd.edu/little_mermaid/index.php/apps/calendar/view/'
+			+ token;
+  };
 
 	$scope.download = function (item) {
 		$window.open(item.calendar.downloadUrl);
@@ -1366,7 +1392,16 @@ app.controller('SettingsController', ['$scope', '$uibModal', '$timeout', 'Settin
 			'<link rel="stylesheet" type="text/css" href="' + baseURL +
 			'core/css/styles.css"></head>';
 		var button = document.getElementsByClassName("btn-date");
-		var body = '<body><h1 class="fc-top">' + button[0].innerHTML + '</h1>' + document.getElementById("app-content").innerHTML +
+
+		var appContentNode = document.getElementById("app-content").cloneNode(true);
+		var eventNodes = appContentNode.querySelectorAll('.fc-day-grid-event');
+
+		// removing events that are not a part of the calendar
+		eventNodes.forEach(function(eventNode) {
+			eventNode.style.cursor = "default";
+		});
+
+		var body = '<body><h1 class="fc-top">' + button[0].innerHTML + '</h1>' + appContentNode.innerHTML +
 			'</body>';
 		var html = head + body;
 
@@ -2579,6 +2614,7 @@ app.factory('CalendarListItem', ["Calendar", "WebCal", function (Calendar, WebCa
 			isEditingProperties: false,
 			isDisplayingCalDAVUrl: false,
 			isDisplayingWebCalUrl: false,
+			isDisplayingOneTimeUrl: false,
 			isSendingMail: false
 		};
 		var iface = {
@@ -2612,6 +2648,18 @@ app.factory('CalendarListItem', ["Calendar", "WebCal", function (Calendar, WebCa
 		iface.hideCalDAVUrl = function () {
 			context.isDisplayingCalDAVUrl = false;
 		};
+
+		iface.displayOneTimeUrl = function () {
+			return context.isDisplayingOneTimeUrl;
+		};
+
+		iface.showOneTimeUrl = function () {
+			context.isDisplayingOneTimeUrl = true;
+		}
+
+		iface.hideOneTimeUrl = function () {
+			context.isDisplayingOneTimeUrl = false;
+		}
 
 		iface.showWebCalUrl = function () {
 			context.isDisplayingWebCalUrl = true;
@@ -5384,6 +5432,22 @@ app.factory('RandomStringService', function () {
 	return {
 		generate: function generate() {
 			return Math.random().toString(36).substr(2);
+		}
+
+
+	};
+});
+
+app.factory('RandomLongStringService', function () {
+	'use strict';
+
+	return {
+		generate: function generate() {
+			var text = "";
+			var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+			for ( var i = 0; i < 40; i++)
+				text += possible.charAt(Math.floor(Math.random() * possible.length));
+			return text;
 		}
 	};
 });
