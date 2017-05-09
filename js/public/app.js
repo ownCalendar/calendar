@@ -565,7 +565,7 @@ app.controller('CalendarListController', ['$scope', '$rootScope', '$window', 'Ca
 		httpRequest.send(data);
 
 		item.showOneTimeUrl();
-		scope.onetimelink = window.location.href + 'view/'
+		scope.onetimelink = window.location.href.split('#')[0] + 'view/'
 			+ token;
   };
 
